@@ -1,0 +1,58 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: report-service
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+    fetchRegistry: true
+    registerWithEureka: true
+  instance:
+    hostname: localhost
+    preferIpAddress: false
+    instance-id: ${spring.application.name}:${server.port}
+    status-page-url: http://localhost:${server.port}/actuator/info
+    health-check-url: http://localhost:${server.port}/actuator/health
+    home-page-url: http://localhost:${server.port}/
+
+jwt:
+  secret: ${JWT_SECRET:SpendWise-Super-Secret-Key-That-Is-At-Least-256-Bits-Long-For-Security}
+  expiration: 86400000
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    try-it-out-enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    display-request-duration: true
+    persist-authorization: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: SpendWise Report Service
+    description: Generates financial analytics reports and expense summaries
+    version: 1.0.0
+    port: 8085
+  swagger-ui: http://localhost:8085/swagger-ui.html
+  api-docs: http://localhost:8085/v3/api-docs
+

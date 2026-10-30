@@ -1,0 +1,4 @@
+package com.spendwise.budget.exception;
+public class ResourceAlreadyExistsException extends RuntimeException {
+    public ResourceAlreadyExistsException(String message) { super(message); }
+}

@@ -1,0 +1,179 @@
+version: "3.8"
+
+# =============================================================
+# SpendWise - Docker Compose
+# Starts: MySQL + all 8 Spring Boot services
+#
+# Usage:
+#   Start:  docker compose up --build
+#   Stop:   docker compose down
+#   Logs:   docker compose logs -f <service-name>
+# =============================================================
+
+services:
+
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: spendwise-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
+      MYSQL_USER: ${DB_USERNAME:-spendwise}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-spendwise123}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - spendwise-network
+
+  # 1. Eureka Discovery Server (START FIRST)
+  discovery-server:
+    build: ./backend/discovery-server
+    container_name: spendwise-discovery
+    ports:
+      - "8761:8761"
+    networks:
+      - spendwise-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # 2. API Gateway
+  api-gateway:
+    build: ./backend/api-gateway
+    container_name: spendwise-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - JWT_SECRET=${JWT_SECRET:-SpendWise-Super-Secret-Key-That-Is-At-Least-256-Bits-Long-For-Security}
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+    networks:
+      - spendwise-network
+
+  # 3. Auth Service
+  auth-service:
+    build: ./backend/auth-service
+    container_name: spendwise-auth
+    ports:
+      - "8081:8081"
+    environment:
+      - DB_USERNAME=${DB_USERNAME:-root}
+      - DB_PASSWORD=${DB_PASSWORD:-root}
+      - JWT_SECRET=${JWT_SECRET:-SpendWise-Super-Secret-Key-That-Is-At-Least-256-Bits-Long-For-Security}
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/spendwise_auth?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+    depends_on:
+      mysql:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    networks:
+      - spendwise-network
+
+  # 4. Category Service
+  category-service:
+    build: ./backend/category-service
+    container_name: spendwise-category
+    ports:
+      - "8083:8083"
+    environment:
+      - DB_USERNAME=${DB_USERNAME:-root}
+      - DB_PASSWORD=${DB_PASSWORD:-root}
+      - JWT_SECRET=${JWT_SECRET:-SpendWise-Super-Secret-Key-That-Is-At-Least-256-Bits-Long-For-Security}
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/spendwise_category?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+    depends_on:
+      mysql:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    networks:
+      - spendwise-network
+
+  # 5. Expense Service
+  expense-service:
+    build: ./backend/expense-service
+    container_name: spendwise-expense
+    ports:
+      - "8082:8082"
+    environment:
+      - DB_USERNAME=${DB_USERNAME:-root}
+      - DB_PASSWORD=${DB_PASSWORD:-root}
+      - JWT_SECRET=${JWT_SECRET:-SpendWise-Super-Secret-Key-That-Is-At-Least-256-Bits-Long-For-Security}
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/spendwise_expense?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+    depends_on:
+      mysql:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+      category-service:
+        condition: service_started
+    networks:
+      - spendwise-network
+
+  # 6. Budget Service
+  budget-service:
+    build: ./backend/budget-service
+    container_name: spendwise-budget
+    ports:
+      - "8084:8084"
+    environment:
+      - DB_USERNAME=${DB_USERNAME:-root}
+      - DB_PASSWORD=${DB_PASSWORD:-root}
+      - JWT_SECRET=${JWT_SECRET:-SpendWise-Super-Secret-Key-That-Is-At-Least-256-Bits-Long-For-Security}
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/spendwise_budget?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+    depends_on:
+      mysql:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    networks:
+      - spendwise-network
+
+  # 7. Report Service
+  report-service:
+    build: ./backend/report-service
+    container_name: spendwise-report
+    ports:
+      - "8085:8085"
+    environment:
+      - JWT_SECRET=${JWT_SECRET:-SpendWise-Super-Secret-Key-That-Is-At-Least-256-Bits-Long-For-Security}
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+    networks:
+      - spendwise-network
+
+  # 8. Notification Service
+  notification-service:
+    build: ./backend/notification-service
+    container_name: spendwise-notification
+    ports:
+      - "8086:8086"
+    environment:
+      - DB_USERNAME=${DB_USERNAME:-root}
+      - DB_PASSWORD=${DB_PASSWORD:-root}
+      - JWT_SECRET=${JWT_SECRET:-SpendWise-Super-Secret-Key-That-Is-At-Least-256-Bits-Long-For-Security}
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/spendwise_notification?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+    depends_on:
+      mysql:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    networks:
+      - spendwise-network
+
+volumes:
+  mysql_data:
+
+networks:
+  spendwise-network:
+    driver: bridge

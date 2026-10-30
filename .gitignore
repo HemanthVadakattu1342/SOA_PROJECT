@@ -1,0 +1,31 @@
+# Environment files (contain secrets - NEVER commit)
+.env
+*.env.local
+
+# Maven build output
+**/target/
+**/build/
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+*.classpath
+*.project
+*.settings/
+
+# Node modules (frontend)
+**/node_modules/
+**/dist/
+**/.next/
+
+# Uploaded files
+**/uploads/
+
+# Log files
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db

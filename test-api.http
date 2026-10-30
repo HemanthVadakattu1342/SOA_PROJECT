@@ -1,0 +1,523 @@
+### ================================================================
+###  SpendWise - Complete REST Client Test File
+###  Usage: Open in VS Code with "REST Client" extension installed
+###         OR copy each block into your browser REST Client tool
+###
+###  STEP 1 → Run LOGIN, copy the "token" value from response
+###  STEP 2 → Paste token into @token variable below
+###  STEP 3 → Run any other request
+### ================================================================
+
+# ── Global Variables ─────────────────────────────────────────────
+@gateway   = http://localhost:8080
+@auth      = http://localhost:8081
+@expense   = http://localhost:8082
+@category  = http://localhost:8083
+@budget    = http://localhost:8084
+@report    = http://localhost:8085
+@notify    = http://localhost:8086
+
+# Paste your JWT token here after login:
+@token = PASTE_YOUR_JWT_TOKEN_HERE
+
+
+### ================================================================
+### ❶  AUTH SERVICE  —  http://localhost:8081
+### ================================================================
+
+### [1] LOGIN  ★ Run this FIRST — copy token from response
+POST {{auth}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@spendwise.com",
+  "password": "Admin@123"
+}
+
+
+### [2] LOGIN as Employee
+POST {{auth}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "emp1@spendwise.com",
+  "password": "Emp@12345"
+}
+
+
+### [3] LOGIN as Manager
+POST {{auth}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "manager@spendwise.com",
+  "password": "Manager@123"
+}
+
+
+### [4] REGISTER new user (Admin only)
+POST {{auth}}/api/auth/register
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "employeeId": "EMP099",
+  "firstName": "Ravi",
+  "lastName": "Kumar",
+  "email": "ravi.kumar@spendwise.com",
+  "password": "Ravi@12345",
+  "department": "Finance",
+  "role": "EMPLOYEE"
+}
+
+
+### [5] GET my profile (any logged-in user — change userId)
+GET {{auth}}/api/auth/profile/1
+Authorization: Bearer {{token}}
+
+
+### [6] GET all users (Admin / Finance Admin only)
+GET {{auth}}/api/auth/users
+Authorization: Bearer {{token}}
+
+
+### [7] UPDATE user (Admin only — change userId)
+PUT {{auth}}/api/auth/users/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "firstName": "System",
+  "lastName": "Administrator",
+  "department": "IT",
+  "role": "SYSTEM_ADMIN",
+  "active": true
+}
+
+
+### [8] GET audit logs (Admin only)
+GET {{auth}}/api/auth/audit-logs
+Authorization: Bearer {{token}}
+
+
+### [9] Auth service health check (no token needed)
+GET {{auth}}/api/auth/health
+
+
+### ================================================================
+### ❷  CATEGORY SERVICE  —  http://localhost:8083
+### ================================================================
+
+### [10] GET all categories (active only)
+GET {{category}}/api/categories
+Authorization: Bearer {{token}}
+
+
+### [11] GET active categories only
+GET {{category}}/api/categories/active
+Authorization: Bearer {{token}}
+
+
+### [12] GET ALL categories including inactive (Admin only)
+GET {{category}}/api/categories/all
+Authorization: Bearer {{token}}
+
+
+### [13] GET category by ID
+GET {{category}}/api/categories/1
+Authorization: Bearer {{token}}
+
+
+### [14] CREATE new category (Admin only)
+POST {{category}}/api/categories
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Travel",
+  "description": "Business travel and conveyance expenses",
+  "color": "#FF5722",
+  "icon": "plane"
+}
+
+
+### [15] CREATE more categories
+POST {{category}}/api/categories
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Office Supplies",
+  "description": "Stationery, printing, office equipment",
+  "color": "#2196F3",
+  "icon": "briefcase"
+}
+
+
+### [16] UPDATE category (Admin only — change id)
+PUT {{category}}/api/categories/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Travel & Conveyance",
+  "description": "Updated: All travel related expenses",
+  "color": "#FF5722",
+  "icon": "plane",
+  "active": true
+}
+
+
+### [17] DELETE category (Admin only — change id)
+DELETE {{category}}/api/categories/2
+Authorization: Bearer {{token}}
+
+
+### ================================================================
+### ❸  EXPENSE SERVICE  —  http://localhost:8082
+### ================================================================
+
+### [18] SUBMIT new expense (Employee)
+POST {{expense}}/api/expenses
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "Team Lunch",
+  "amount": 1200.00,
+  "currency": "INR",
+  "categoryId": 1,
+  "expenseDate": "2026-09-22",
+  "description": "Monthly team lunch with Engineering department",
+  "merchantName": "Swiggy"
+}
+
+
+### [19] SUBMIT another expense
+POST {{expense}}/api/expenses
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "Flight to Mumbai",
+  "amount": 8500.00,
+  "currency": "INR",
+  "categoryId": 1,
+  "expenseDate": "2026-09-20",
+  "description": "Client visit - IndiGo 6E-201",
+  "merchantName": "IndiGo Airlines"
+}
+
+
+### [20] GET all expenses (Admin / Finance Admin)
+GET {{expense}}/api/expenses
+Authorization: Bearer {{token}}
+
+
+### [21] GET my own expenses (Employee)
+GET {{expense}}/api/expenses/my
+Authorization: Bearer {{token}}
+
+
+### [22] GET expense by ID (change id)
+GET {{expense}}/api/expenses/1
+Authorization: Bearer {{token}}
+
+
+### [23] GET expenses by department (Admin / Manager)
+GET {{expense}}/api/expenses/department/Engineering
+Authorization: Bearer {{token}}
+
+
+### [24] GET pending expenses (Manager / Finance Admin)
+GET {{expense}}/api/expenses/pending
+Authorization: Bearer {{token}}
+
+
+### [25] UPDATE expense (Employee — only DRAFT expenses, change id)
+PUT {{expense}}/api/expenses/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "Team Lunch - Updated",
+  "amount": 1350.00,
+  "currency": "INR",
+  "categoryId": 1,
+  "expenseDate": "2026-09-22",
+  "description": "Updated amount after bill split",
+  "merchantName": "Swiggy"
+}
+
+
+### [26] SUBMIT expense for approval (Employee — change id)
+POST {{expense}}/api/expenses/1/submit
+Authorization: Bearer {{token}}
+
+
+### [27] APPROVE expense (Manager / Finance Admin — change id)
+POST {{expense}}/api/expenses/1/approve
+Authorization: Bearer {{token}}
+
+
+### [28] REJECT expense (Manager / Finance Admin — change id)
+POST {{expense}}/api/expenses/1/reject
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "reason": "Receipt not attached. Please resubmit with proof."
+}
+
+
+### [29] DELETE expense (Employee — only DRAFT, change id)
+DELETE {{expense}}/api/expenses/2
+Authorization: Bearer {{token}}
+
+
+### ================================================================
+### ❹  BUDGET SERVICE  —  http://localhost:8084
+### ================================================================
+
+### [30] CREATE budget (Finance Admin / Admin)
+POST {{budget}}/api/budgets
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "categoryId": 1,
+  "department": "Engineering",
+  "amount": 50000.00,
+  "period": "MONTHLY",
+  "startDate": "2026-09-01",
+  "endDate": "2026-09-30"
+}
+
+
+### [31] CREATE another budget
+POST {{budget}}/api/budgets
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "categoryId": 1,
+  "department": "Finance",
+  "amount": 30000.00,
+  "period": "MONTHLY",
+  "startDate": "2026-09-01",
+  "endDate": "2026-09-30"
+}
+
+
+### [32] GET all budgets
+GET {{budget}}/api/budgets
+Authorization: Bearer {{token}}
+
+
+### [33] GET budget by ID (change id)
+GET {{budget}}/api/budgets/1
+Authorization: Bearer {{token}}
+
+
+### [34] GET budgets by department
+GET {{budget}}/api/budgets/department/Engineering
+Authorization: Bearer {{token}}
+
+
+### [35] GET budget summary
+GET {{budget}}/api/budgets/summary
+Authorization: Bearer {{token}}
+
+
+### [36] GET budget alerts (over-budget warnings)
+GET {{budget}}/api/budgets/alerts
+Authorization: Bearer {{token}}
+
+
+### [37] GET budget reconciliation
+GET {{budget}}/api/budgets/reconciliation
+Authorization: Bearer {{token}}
+
+
+### [38] UPDATE budget (Finance Admin — change id)
+PUT {{budget}}/api/budgets/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "amount": 60000.00,
+  "period": "MONTHLY",
+  "startDate": "2026-09-01",
+  "endDate": "2026-09-30"
+}
+
+
+### ================================================================
+### ❺  REPORT SERVICE  —  http://localhost:8085
+### ================================================================
+
+### [39] GET dashboard summary
+GET {{report}}/api/reports/dashboard
+Authorization: Bearer {{token}}
+
+
+### [40] GET monthly report
+GET {{report}}/api/reports/monthly
+Authorization: Bearer {{token}}
+
+
+### [41] GET report by category
+GET {{report}}/api/reports/category
+Authorization: Bearer {{token}}
+
+
+### [42] GET report by department
+GET {{report}}/api/reports/department
+Authorization: Bearer {{token}}
+
+
+### [43] GET budget report
+GET {{report}}/api/reports/budget
+Authorization: Bearer {{token}}
+
+
+### [44] GET reconciliation report
+GET {{report}}/api/reports/reconciliation
+Authorization: Bearer {{token}}
+
+
+### [45] GET trends report
+GET {{report}}/api/reports/trends
+Authorization: Bearer {{token}}
+
+
+### [46] GET employee expense report
+GET {{report}}/api/reports/employee
+Authorization: Bearer {{token}}
+
+
+### ================================================================
+### ❻  NOTIFICATION SERVICE  —  http://localhost:8086
+### ================================================================
+
+### [47] GET my notifications
+GET {{notify}}/api/notifications/my
+Authorization: Bearer {{token}}
+
+
+### [48] GET unread notifications only
+GET {{notify}}/api/notifications/unread
+Authorization: Bearer {{token}}
+
+
+### [49] GET unread notification count
+GET {{notify}}/api/notifications/unread-count
+Authorization: Bearer {{token}}
+
+
+### [50] MARK notifications as read
+POST {{notify}}/api/notifications/mark-read
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "notificationIds": [1, 2, 3]
+}
+
+
+### ================================================================
+### ❼  VIA API GATEWAY  —  http://localhost:8080  (all services)
+### ================================================================
+
+### [51] LOGIN via gateway
+POST {{gateway}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@spendwise.com",
+  "password": "Admin@123"
+}
+
+
+### [52] GET categories via gateway
+GET {{gateway}}/api/categories
+Authorization: Bearer {{token}}
+
+
+### [53] GET expenses via gateway
+GET {{gateway}}/api/expenses
+Authorization: Bearer {{token}}
+
+
+### [54] GET budgets via gateway
+GET {{gateway}}/api/budgets
+Authorization: Bearer {{token}}
+
+
+### [55] GET dashboard report via gateway
+GET {{gateway}}/api/reports/dashboard
+Authorization: Bearer {{token}}
+
+
+### [56] GET notifications via gateway
+GET {{gateway}}/api/notifications/my
+Authorization: Bearer {{token}}
+
+
+### ================================================================
+### ❽  HEALTH CHECKS  —  no token needed
+### ================================================================
+
+### Eureka Discovery Server
+GET http://localhost:8761/actuator/health
+
+### Auth Service
+GET {{auth}}/actuator/health
+
+### Category Service
+GET {{category}}/actuator/health
+
+### Expense Service
+GET {{expense}}/actuator/health
+
+### Budget Service
+GET {{budget}}/actuator/health
+
+### Report Service
+GET {{report}}/actuator/health
+
+### Notification Service
+GET {{notify}}/actuator/health
+
+### API Gateway
+GET {{gateway}}/actuator/health
+
+
+### ================================================================
+### ❾  ACTUATOR INFO  —  see service details (no token needed)
+### ================================================================
+
+### Auth info
+GET {{auth}}/actuator/info
+
+### Category info
+GET {{category}}/actuator/info
+
+### Expense info
+GET {{expense}}/actuator/info
+
+### Budget info
+GET {{budget}}/actuator/info
+
+### Report info
+GET {{report}}/actuator/info
+
+### Notification info
+GET {{notify}}/actuator/info
+
+### Gateway info
+GET {{gateway}}/actuator/info
+
+### Eureka registered services (JSON)
+GET http://localhost:8761/eureka/apps
+Accept: application/json
